@@ -24,7 +24,7 @@ function getPlainElements(arr) {
         if (arr[i] === true) {
             let j = i ** 2;
             while (j <= n) {
-                arr[j] = false;
+                delete arr[j];
                 j += i;
             }
         }
