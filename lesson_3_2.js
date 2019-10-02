@@ -1,16 +1,20 @@
 // 2 и 3
 let basket = [
-    {name: 'Tovar1', price: 22},
-    {name: 'Tovar2', price: 57},
-    {name: 'Tovar3', price: 13},
-    {name: 'Tovar4', price: 28}
+    {name: 'Tovar1', price: 22, count: 1},
+    {name: 'Tovar2', price: 57, count: 2},
+    {name: 'Tovar3', price: 13, count: 2},
+    {name: 'Tovar4', price: 28, count: 1}
 ]
 console.log('Цена всех товаров:', countBasketPrice(basket));
+
+console.log('Цена всех товаров с помощью reduce:', basket.reduce((sum, item) => {
+    return sum + item.price * item.count;
+}, 0));
 
 function countBasketPrice(basket){
     let res = 0;
     for (const item of basket) {
-        res += item.price;
+        res += item.price * item.count;
     }
     return res;
 }
