@@ -10,6 +10,7 @@ const settings = {
 const player = {
   x: null,
   y: null,
+  settings,
 
   init(startX, startY) {
     this.x = startX;
@@ -19,27 +20,42 @@ const player = {
   move(direction) {
     switch (direction) {
       case 2:
-        this.y++;
+        if (this.y === this.settings.colCount -1)
+          this.y = this.settings.startPositionY;
+        else
+          this.y++;
         break;
       case 4:
-        this.x--;
+        if (this.x === this.settings.startPositionX)
+          this.x = this.settings.rowCount - 1;
+        else
+          this.x--;
         break;
       case 6:
-        this.x++;
+        if (this.x === this.settings.rowCount -1)
+          this.x = this.settings.startPositionX;
+        else
+          this.x++;
         break;
       case 8:
-        this.y--;
+        if (this.y === this.settings.startPositionY)
+          this.y = this.settings.colCount - 1;
+        else
+          this.y--;
         break;
     }
   }
 };
 
+
 const game = {
   settings,
   player,
+  log: [], //
 
   run() {
     this.player.init(this.settings.startPositionX, this.settings.startPositionY);
+    this.writeLog(this.settings.startPositionX, this.settings.startPositionY, 0); // Заполним нулевой элемент массива, егда еще нет ни одного шага, так как ключ - это номер шага
 
     while (true) {
       this.render();
@@ -51,7 +67,23 @@ const game = {
       }
 
       this.player.move(direction);
+      this.writeLog(this.player.x, this.player.y, direction);
     }
+  },
+
+  writeLog(curX, curY, curDirection) {
+    this.log.push({
+      x: curX,
+      y: curY,
+      direction: curDirection,
+    })
+  },
+
+  readLog(step) {
+    if (this.log[step] == undefined) {
+      return console.log('Такой шаг еще не сделан');
+    }
+    return console.log(this.log[step]);
   },
 
   render() {
@@ -89,3 +121,10 @@ const game = {
 };
 
 game.run();
+// Весь лог
+for (let i = 1; i < game.log.length; i++) {
+  console.log('Шаг '+i+': ');
+  game.readLog(i);
+}
+
+//game.readLog(10);
