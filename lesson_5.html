@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script defer src="lesson_5_chess.js"></script>
+    <script defer src="lesson_5_cart.js"></script>
+    <script defer src="lesson_5_snake.js"></script>
+    <title>Lesson_5</title>
+    <style>
+        * {
+            margin: 0;
+        }
+        .chessRow    {
+            display: flex;
+        }
+        .chessRow.first {
+            margin-left: 10px;
+        }
+        .chessCol, .letter {
+            width: 20px;
+            height: 20px;
+        }
+        .chessCol {
+            outline: 1px solid #eee;
+        }
+        .chessCol.black {
+            background-color: #000;
+        }
+        .chessFlex {
+            display: flex;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+        tr {
+            width: 20px;
+            height: 20px;
+        }
+        td {
+            border: 1px solid #888;
+            width: 20px;
+            height: 20px;
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+<div id="cart"></div>
+<table id="game"></table>
+</body>
+</html>
