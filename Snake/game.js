@@ -14,6 +14,7 @@ const player = {
     x: null,
     y: null,
     direction: null,
+    settings,
 
     setDirection(direction) {
         this.direction = direction;
@@ -40,17 +41,30 @@ const player = {
 
         switch (this.direction) {
             case 'up':
-                point.y--;
+                if (this.y === this.settings.startPositionY)
+                    point.y = this.settings.colCount - 1;
+                else
+                    point.y--;
                 break;
             case 'right':
-                point.x++;
+                if (this.x === this.settings.rowCount -1)
+                    point.x = this.settings.startPositionX;
+                else
+                    point.x++;
                 break;
             case 'down':
-                point.y++;
+                if (this.y === this.settings.colCount -1)
+                    point.y = this.settings.startPositionY;
+                else
+                    point.y++;
                 break;
             case 'left':
-                point.x--;
+                if (this.x === this.settings.startPositionX)
+                    point.x = this.settings.rowCount - 1;
+                else
+                    point.x--;
                 break;
+
         }
 
         return point;
