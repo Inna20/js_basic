@@ -98,8 +98,10 @@ const map = {
 
     snakePointsArray.forEach((point, idx) => {
       const snakeCell = this.cells[`x${point.x}_y${point.y}`];
-      snakeCell.classList.add(idx === 0 ? 'snakeHead' : 'snakeBody');
-      this.usedCells.push(snakeCell);
+      if (snakeCell) {
+        snakeCell.classList.add(idx === 0 ? 'snakeHead' : 'snakeBody');
+        this.usedCells.push(snakeCell);
+      }
     });
 
     const foodCell = this.cells[`x${foodPoint.x}_y${foodPoint.y}`];
@@ -112,6 +114,8 @@ const snake = {
   body: null,
   direction: null,
   lastStepDirection: null,
+  meetWall: false,
+  config,
 
   init(startBody, direction) {
     this.body = startBody;
@@ -133,8 +137,13 @@ const snake = {
 
   makeStep() {
     this.lastStepDirection = this.direction;
-    this.body.unshift(this.getNextStepHeadPoint()); // [p3, p2, p1] // [p4, p3, p2]
-    this.body.pop();
+    if (!this.meetWall) {
+      this.body.unshift(this.getNextStepHeadPoint()); // [p3, p2, p1] // [p4, p3, p2]
+      this.body.pop();
+    } else { // змейка с противоположной стороны
+      this.resetBodyAfterWall();
+      this.meetWall = false;
+    }
   },
 
   growUp() {
@@ -156,6 +165,47 @@ const snake = {
         return {x: firstPoint.x, y: firstPoint.y + 1};
       case 'left':
         return {x: firstPoint.x - 1, y: firstPoint.y};
+    }
+  },
+  resetBodyAfterWall() {
+    const firstPoint = this.body[0];
+    let x,y;
+
+    switch(this.direction) {
+      case 'up':
+        x = firstPoint.x;
+        y = this.config.getRowsCount() - 1;
+        for (let i = 0; i < this.body.length; i++) {
+          this.body[i] = {x: x, y: y};
+          y++;
+        }
+        break;
+      case 'right':
+        x = 0;
+        y = firstPoint.y;
+        for (let i = 0; i < this.body.length; i++) {
+          this.body[i] = {x: x, y: y};
+          x--;
+        }
+        break;
+        //return {x: 0, y: firstPoint.y};
+      case 'down':
+        x = firstPoint.x;
+        y = 0;
+        for (let i = 0; i < this.body.length; i++) {
+          this.body[i] = {x: x, y: y};
+          y--;
+        }
+        break;
+      case 'left':
+        x = this.config.getColsCount() - 1;
+        y = firstPoint.y;
+        for (let i = 0; i < this.body.length; i++) {
+          this.body[i] = {x: x, y: y};
+          x++;
+        }
+        break;
+      //  return {x: this.config.colsCount(), y: firstPoint.y};
     }
   },
 
@@ -280,9 +330,13 @@ const game = {
     this.setPlayButton('Игра закончена', true);
   },
 
+  meetWall() {
+    this.snake.meetWall = true;
+  },
+
   tickHandler() {
     if (!this.canMakeStep()) {
-      return this.finish();
+      this.meetWall();
     }
 
     if (this.food.isOnPoint(this.snake.getNextStepHeadPoint())) {
@@ -413,4 +467,4 @@ const game = {
   }
 };
 
-window.addEventListener('load', () => game.init({speed: 5}));
+window.addEventListener('load', () => game.init({speed: 5, winFoodCount: 7}));
