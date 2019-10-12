@@ -44,3 +44,7 @@ td.cell{
 .disabled:hover{
     background: #7c7c7c;
 }
+#score {
+    text-align: center;
+    color: #fff;
+}
