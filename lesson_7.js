@@ -277,150 +277,133 @@ const score = {
   }
 };
 
-const game = {
-  config,
-  map,
-  snake,
-  food,
-  status,
-  tickInterval: null,
-  score,
+function game(config,
+              map,
+              snake,
+              food,
+              status,
+              score) {
 
-  init(userSettings) {
-    this.config.init(userSettings);
-    const validation = this.config.validate();
+  let tickInterval= null;
 
-    if (!validation.isValid) {
-      for (const err of validation.errors) {
-        console.error(err);
-      }
-      return;
+  function reset() {
+    stop();
+    snake.init(getStartSnakeBody(), 'up');
+    food.setCoordinates(getRandomFreeCoordinates());
+    score.reset();
+    render();
+  }
+
+  function play() {
+    status.setPlaying();
+    tickInterval = setInterval(() => tickHandler(), 1000 / config.getSpeed());
+    setPlayButton('Стоп');
+    score.init(config.getScoreElemId());
+  }
+
+  function stop() {
+    status.setStopped();
+    clearInterval(tickInterval);
+    setPlayButton('Старт');
+  }
+
+  function finish() {
+    status.setFinished();
+    clearInterval(tickInterval);
+    setPlayButton('Игра закончена', true);
+  }
+
+  function meetWall() {
+    snake.meetWall = true;
+  }
+
+  function tickHandler() {
+    if (!canMakeStep()) {
+      meetWall();
     }
 
-    this.map.init(this.config.getRowsCount(), this.config.getColsCount());
+    if (food.isOnPoint(snake.getNextStepHeadPoint())) {
+      snake.growUp();
+      food.setCoordinates(getRandomFreeCoordinates());
+      score.render(getCurrentPoints());
 
-    this.setEventHandlers();
-    this.reset();
-  },
-
-  reset() {
-    this.stop();
-    this.snake.init(this.getStartSnakeBody(), 'up');
-    this.food.setCoordinates(this.getRandomFreeCoordinates());
-    this.score.reset();
-    this.render();
-  },
-
-  play() {
-    this.status.setPlaying();
-    this.tickInterval = setInterval(() => this.tickHandler(), 1000 / this.config.getSpeed());
-    this.setPlayButton('Стоп');
-    this.score.init(this.config.getScoreElemId());
-  },
-
-  stop() {
-    this.status.setStopped();
-    clearInterval(this.tickInterval);
-    this.setPlayButton('Старт');
-  },
-
-  finish() {
-    this.status.setFinished();
-    clearInterval(this.tickInterval);
-    this.setPlayButton('Игра закончена', true);
-  },
-
-  meetWall() {
-    this.snake.meetWall = true;
-  },
-
-  tickHandler() {
-    if (!this.canMakeStep()) {
-      this.meetWall();
-    }
-
-    if (this.food.isOnPoint(this.snake.getNextStepHeadPoint())) {
-      this.snake.growUp();
-      this.food.setCoordinates(this.getRandomFreeCoordinates());
-      this.score.render(this.getCurrentPoints());
-
-      if (this.isGameWon()) {
-        this.finish();
+      if (isGameWon()) {
+        finish();
       }
     }
 
-    this.snake.makeStep();
-    this.render();
-  },
+    snake.makeStep();
+    render();
+  }
 
-  setPlayButton(textContents, isDisabled = false) {
+  function setPlayButton(textContents, isDisabled = false) {
     const playButton = document.getElementById('playButton');
 
     playButton.textContent = textContents;
     isDisabled ? playButton.classList.add('disabled') : playButton.classList.remove('disabled');
-  },
+  }
 
-  getStartSnakeBody() {
+  function getStartSnakeBody() {
     return [
       {
-        x: Math.floor(this.config.getColsCount() / 2),
-        y: Math.floor(this.config.getRowsCount() / 2),
+        x: Math.floor(config.getColsCount() / 2),
+        y: Math.floor(config.getRowsCount() / 2),
       }
     ];
-  },
+  }
 
-  setEventHandlers() {
+  function setEventHandlers() {
     document.getElementById('playButton').addEventListener('click', () => {
-      this.playClickHandler();
+      playClickHandler();
     });
     document.getElementById('newGameButton').addEventListener('click', () => {
-      this.newGameClickHandler();
+      newGameClickHandler();
     });
-    document.addEventListener('keydown', event => this.keyDownHandler(event));
-  },
+    document.addEventListener('keydown', event => keyDownHandler(event));
+  }
 
-  render() {
-    this.map.render(this.snake.getBody(), this.food.getCoordinates());
-  },
+  function render() {
+    map.render(snake.getBody(), food.getCoordinates());
+  }
 
-  getRandomFreeCoordinates() {
-    const exclude = [this.food.getCoordinates(), ...this.snake.getBody()];
+  function getRandomFreeCoordinates() {
+    const exclude = [food.getCoordinates(), ...snake.getBody()];
 
     while (true) {
       const rndPoint = {
-        x: Math.floor(Math.random() * this.config.getColsCount()),
-        y: Math.floor(Math.random() * this.config.getRowsCount()),
+        x: Math.floor(Math.random() * config.getColsCount()),
+        y: Math.floor(Math.random() * config.getRowsCount()),
       };
 
       if (!exclude.some(exPoint => rndPoint.x === exPoint.x && rndPoint.y === exPoint.y)) {
         return rndPoint;
       }
     }
-  },
+  }
 
-  playClickHandler() {
-    if (this.status.isPlaying()) {
-      this.stop();
-    } else if (this.status.isStopped()) {
-      this.play();
+  function playClickHandler() {
+    if (status.isPlaying()) {
+      stop();
+    } else if (status.isStopped()) {
+      play();
     }
-  },
+  }
 
-  newGameClickHandler() {
-    this.reset();
-  },
+  function newGameClickHandler() {
+    reset();
+  }
 
-  keyDownHandler(event) {
-    if (!this.status.isPlaying()) return;
+  function keyDownHandler(event) {
+    if (!status.isPlaying()) return;
 
-    const direction = this.getDirectionByCode(event.code);
+    const direction = getDirectionByCode(event.code);
 
-    if (this.canSetDirection(direction)) {
-      this.snake.setDirection(direction);
+    if (canSetDirection(direction)) {
+      snake.setDirection(direction);
     }
-  },
+  }
 
-  getDirectionByCode(code) {
+  function getDirectionByCode(code) {
     switch (code) {
       case 'KeyW':
       case 'ArrowUp':
@@ -437,34 +420,54 @@ const game = {
       default:
         return '';
     }
-  },
+  }
 
-  canSetDirection(direction) {
-    const lastStepDirection = this.snake.getLastStepDirection();
+  function canSetDirection(direction) {
+    const lastStepDirection = snake.getLastStepDirection();
 
     return direction === 'up' && lastStepDirection !== 'down' ||
-      direction === 'right' && lastStepDirection !== 'left' ||
-      direction === 'down' && lastStepDirection !== 'up' ||
-      direction === 'left' && lastStepDirection !== 'right';
-  },
-
-  isGameWon() {
-    return this.snake.getBody().length > this.config.getWinFoodCount();
-  },
-
-  canMakeStep() {
-    const nextHeadPoint = this.snake.getNextStepHeadPoint();
-
-    return !this.snake.isOnPoint(nextHeadPoint) &&
-      nextHeadPoint.x < this.config.getColsCount() &&
-      nextHeadPoint.y < this.config.getRowsCount() &&
-      nextHeadPoint.x >= 0 &&
-      nextHeadPoint.y >= 0;
-  },
-
-  getCurrentPoints() {
-    return this.snake.getBody().length - 1;
+        direction === 'right' && lastStepDirection !== 'left' ||
+        direction === 'down' && lastStepDirection !== 'up' ||
+        direction === 'left' && lastStepDirection !== 'right';
   }
-};
 
-window.addEventListener('load', () => game.init({speed: 5, winFoodCount: 7}));
+  function isGameWon() {
+    return snake.getBody().length > config.getWinFoodCount();
+  }
+
+  function canMakeStep() {
+    const nextHeadPoint = snake.getNextStepHeadPoint();
+
+    return !snake.isOnPoint(nextHeadPoint) &&
+        nextHeadPoint.x < config.getColsCount() &&
+        nextHeadPoint.y < config.getRowsCount() &&
+        nextHeadPoint.x >= 0 &&
+        nextHeadPoint.y >= 0;
+  }
+
+  function getCurrentPoints() {
+    return snake.getBody().length - 1;
+  }
+
+  return {
+    init(userSettings) {
+      config.init(userSettings);
+      const validation = config.validate();
+
+      if (!validation.isValid) {
+        for (const err of validation.errors) {
+          console.error(err);
+        }
+        return;
+      }
+
+      map.init(config.getRowsCount(), config.getColsCount());
+
+      setEventHandlers();
+      reset();
+    }
+  };
+}
+
+const myGame = game(config, map, snake, food, status, score);
+window.addEventListener('load', () => myGame.init({speed: 5, winFoodCount: 7}));
